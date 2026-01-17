@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>📷 펠시 인증소</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- 폰트 로드 -->
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Jua&family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg-color: #f8f9fa;
+        --text-color: #212529;
+        --border-color: #dee2e6;
+        --section-bg: #ffffff;
+        --btn-bg: #e9ecef;
+        --btn-hover-bg: #dee2e6;
+        --accent-btn-bg: #fa5252;
+        --accent-btn-hover-bg: #e03131;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+      body {
+        font-family:
+          "Pretendard",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        box-sizing: border-box;
+      }
+      .container {
+        width: 100%;
+        max-width: 1000px;
+        background-color: var(--section-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--shadow);
+      }
+      h1 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 5px;
+        font-size: 1.8rem;
+      }
+      p.subtitle {
+        color: var(--key-color, #868e96);
+        font-size: 0.95rem;
+        text-align: center;
+        margin-bottom: 30px;
+        font-weight: 500;
+      }
+
+      /* 초기 업로드 박스 */
+      .upload-box {
+        border: 2px dashed var(--border-color);
+        border-radius: 12px;
+        padding: 60px 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        background: var(--bg-color);
+      }
+      .upload-box:hover,
+      .upload-box.dragover {
+        background-color: var(--section-bg);
+        border-color: var(--accent-btn-bg);
+        transform: scale(1.01);
+      }
+      #file-input {
+        display: none;
+      }
+
+      /* === 레이아웃 개선 (반응형) === */
+      .workspace-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+      }
+
+      /* PC/태블릿 화면 */
+      @media (min-width: 768px) {
+        .workspace-layout {
+          flex-direction: row;
+          align-items: flex-start;
+        }
+        .preview-section {
+          flex: 1;
+          position: sticky;
+          top: 20px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .controls-section {
+          width: 320px;
+          flex-shrink: 0;
+        }
+      }
+
+      /* 이미지 미리보기 영역 */
+      .preview-section {
+        text-align: center;
+      }
+
+      /* 상단 툴바 */
+      .preview-toolbar {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+        min-height: 40px;
+        align-items: center;
+        width: 100%;
+      }
+
+      #image-preview-container {
+        position: relative;
+        line-height: 0;
+        display: inline-block;
+        max-width: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        background: none;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        margin: 0 auto;
+      }
+      #image-preview {
+        max-width: 100%;
+        max-height: 70vh;
+        display: block;
+      }
+      #watermark-preview-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+      }
+
+      /* 컨트롤 패널 스타일 */
+      .controls-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        background: var(--bg-color);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .control-label {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--text-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .position-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        width: 100%;
+        aspect-ratio: 1.5;
+      }
+      .position-grid button {
+        padding: 0;
+        font-size: 1.2rem;
+        background: var(--section-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+      .position-grid button:hover {
+        background: var(--btn-hover-bg);
+      }
+      .position-grid button.active {
+        background: var(--accent-btn-bg);
+        color: #fff;
+        border-color: var(--accent-btn-bg);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .stepper {
+        display: flex;
+        align-items: center;
+        background: var(--section-bg);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        height: 40px;
+      }
+      .stepper input {
+        flex: 1;
+        text-align: center;
+        border: none;
+        background: transparent;
+        color: var(--text-color);
+        font-size: 1rem;
+        font-weight: 600;
+        appearance: textfield;
+        padding: 0;
+        height: 100%;
+        cursor: text;
+      }
+      /* 숫자 입력 화살표 제거 */
+      .stepper input::-webkit-outer-spin-button,
+      .stepper input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      .stepper-btn {
+        width: 40px;
+        height: 100%;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        color: var(--text-color);
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.1s;
+      }
+      .stepper-btn:hover {
+        background: var(--btn-hover-bg);
+      }
+      .stepper-btn.minus {
+        border-right: 1px solid var(--border-color);
+      }
+      .stepper-btn.plus {
+        border-left: 1px solid var(--border-color);
+      }
+
+      .color-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 5px;
+        flex-wrap: wrap;
+      }
+      .color-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid var(--border-color);
+        cursor: pointer;
+        padding: 0;
+        transition: transform 0.1s;
+      }
+      .color-btn:hover {
+        transform: scale(1.1);
+      }
+      .color-btn.active {
+        border-color: var(--text-color);
+        box-shadow: 0 0 0 2px var(--accent-btn-bg);
+        transform: scale(1.1);
+      }
+      .color-btn.transparent {
+        background-image:
+          linear-gradient(45deg, #ccc 25%, transparent 25%),
+          linear-gradient(-45deg, #ccc 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #ccc 75%),
+          linear-gradient(-45deg, transparent 75%, #ccc 75%);
+        background-size: 8px 8px;
+        background-color: #fff;
+      }
+      input[type="color"] {
+        -webkit-appearance: none;
+        border: none;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        background: none;
+        cursor: pointer;
+        border-radius: 50%;
+        overflow: hidden;
+      }
+      input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+      input[type="color"]::-webkit-color-swatch {
+        border: 2px solid var(--border-color);
+        border-radius: 50%;
+      }
+
+      /* 폰트 선택 */
+      .font-select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--section-bg);
+        color: var(--text-color);
+        font-size: 1rem;
+        cursor: pointer;
+        outline: none;
+      }
+
+      .main-action-btn {
+        width: 100%;
+        border: none;
+        padding: 16px;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        background-color: var(--accent-btn-bg);
+        color: white;
+        margin-top: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        transition:
+          transform 0.1s,
+          background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .main-action-btn:hover {
+        background-color: var(--accent-btn-hover-bg);
+        transform: translateY(-2px);
+      }
+      .main-action-btn:active {
+        transform: translateY(1px);
+      }
+
+      .header-controls {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 100;
+      }
+      .header-controls button {
+        background-color: var(--section-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        transition: transform 0.1s;
+      }
+      .header-controls button:hover {
+        background-color: var(--btn-hover-bg);
+        transform: scale(1.05);
+      }
+
+      #change-image-btn {
+        background: var(--btn-bg);
+        border: none;
+        color: var(--text-color);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: background 0.2s;
+      }
+      #change-image-btn:hover {
+        background: var(--btn-hover-bg);
+      }
+
+      .stamp-info {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-color);
+        margin-top: 15px;
+        display: block;
+        text-align: center;
+        background: var(--btn-bg);
+        padding: 10px;
+        border-radius: 8px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header-controls">
+      <button id="home-btn" title="토스트">🍞</button>
+    </div>
+
+    <div class="container">
+      <h1>📷 펠시 인증소</h1>
+      <p class="subtitle">🎉 신입 펠시 인증을 이끌어주는 공간 🥳</p>
+
+      <div id="upload-box" class="upload-box">
+        <span style="font-size: 3rem; margin-bottom: 15px">📂</span>
+        <span style="font-weight: 600; font-size: 1.1rem">이미지 업로드</span>
+        <span style="color: #868e96; font-size: 0.9rem; margin-top: 5px"
+          >클릭하거나 파일을 드래그하세요</span
+        >
+      </div>
+      <input type="file" id="file-input" accept="image/*" />
+
+      <div id="workspace" style="display: none">
+        <div class="workspace-layout">
+          <!-- 왼쪽: 이미지 미리보기 -->
+          <div class="preview-section">
+            <div class="preview-toolbar">
+              <button id="change-image-btn">🔄 이미지 변경</button>
+            </div>
+
+            <div id="image-preview-container"></div>
+            <span id="timestamp-display" class="stamp-info"></span>
+          </div>
+
+          <!-- 오른쪽: 컨트롤러 -->
+          <div class="controls-section">
+            <div class="controls-panel">
+              <!-- 위치 조절 -->
+              <div class="control-group">
+                <span class="control-label">위치</span>
+                <div class="position-grid" id="watermark-position">
+                  <button data-position="top-left" title="좌측 상단">↖</button>
+                  <button data-position="top" title="상단">↑</button>
+                  <button data-position="top-right" title="우측 상단">↗</button>
+                  <button data-position="left" title="좌측">←</button>
+                  <button data-position="center" title="중앙">＋</button>
+                  <button data-position="right" title="우측">→</button>
+                  <button data-position="bottom-left" title="좌측 하단">
+                    ↙
+                  </button>
+                  <button data-position="bottom" title="하단">↓</button>
+                  <button data-position="bottom-right" title="우측 하단">
+                    ↘
+                  </button>
+                </div>
+              </div>
+
+              <!-- 폰트 선택 -->
+              <div class="control-group">
+                <span class="control-label">폰트</span>
+                <select id="font-select" class="font-select">
+                  <option
+                    value="Pretendard"
+                    style="font-family: &quot;Pretendard&quot;"
+                  >
+                    프리텐다드 (기본)
+                  </option>
+                  <option
+                    value="Noto Sans KR"
+                    style="font-family: &quot;Noto Sans KR&quot;"
+                  >
+                    본고딕
+                  </option>
+                  <option
+                    value="Nanum Gothic"
+                    style="font-family: &quot;Nanum Gothic&quot;"
+                  >
+                    나눔고딕
+                  </option>
+                  <option
+                    value="Nanum Myeongjo"
+                    style="font-family: &quot;Nanum Myeongjo&quot;"
+                  >
+                    나눔명조
+                  </option>
+                  <option value="Jua" style="font-family: &quot;Jua&quot;">
+                    주아 (동글)
+                  </option>
+                  <option
+                    value="Do Hyeon"
+                    style="font-family: &quot;Do Hyeon&quot;"
+                  >
+                    도현 (강조)
+                  </option>
+                </select>
+              </div>
+
+              <!-- 크기 조절 -->
+              <div class="control-group">
+                <span class="control-label">크기</span>
+                <div class="stepper">
+                  <button
+                    class="stepper-btn minus"
+                    data-target="font-size-input"
+                    data-step="-5"
+                  >
+                    －
+                  </button>
+                  <!-- readonly 제거: 직접 입력 가능 -->
+                  <input
+                    type="number"
+                    id="font-size-input"
+                    value="40"
+                    min="10"
+                    max="200"
+                  />
+                  <button
+                    class="stepper-btn plus"
+                    data-target="font-size-input"
+                    data-step="5"
+                  >
+                    ＋
+                  </button>
+                </div>
+              </div>
+
+              <!-- 글자 투명도 조절 -->
+              <div class="control-group">
+                <span class="control-label">글자 투명도 (%)</span>
+                <div class="stepper">
+                  <button
+                    class="stepper-btn minus"
+                    data-target="text-opacity-input"
+                    data-step="-5"
+                  >
+                    －
+                  </button>
+                  <input
+                    type="number"
+                    id="text-opacity-input"
+                    value="50"
+                    min="10"
+                    max="100"
+                  />
+                  <button
+                    class="stepper-btn plus"
+                    data-target="text-opacity-input"
+                    data-step="5"
+                  >
+                    ＋
+                  </button>
+                </div>
+              </div>
+
+              <!-- 배경 투명도 조절 -->
+              <div class="control-group">
+                <span class="control-label">배경 투명도 (%)</span>
+                <div class="stepper">
+                  <button
+                    class="stepper-btn minus"
+                    data-target="bg-opacity-input"
+                    data-step="-5"
+                  >
+                    －
+                  </button>
+                  <input
+                    type="number"
+                    id="bg-opacity-input"
+                    value="50"
+                    min="0"
+                    max="100"
+                  />
+                  <button
+                    class="stepper-btn plus"
+                    data-target="bg-opacity-input"
+                    data-step="5"
+                  >
+                    ＋
+                  </button>
+                </div>
+              </div>
+
+              <!-- 글자 색상 -->
+              <div class="control-group">
+                <span class="control-label">글자 색상</span>
+                <div class="color-row" id="text-color-palette">
+                  <button
+                    class="color-btn"
+                    style="background: #ffffff"
+                    data-color="#ffffff"
+                  ></button>
+                  <button
+                    class="color-btn"
+                    style="background: #000000"
+                    data-color="#000000"
+                  ></button>
+                  <button
+                    class="color-btn"
+                    style="background: #fa5252"
+                    data-color="#fa5252"
+                  ></button>
+                  <button
+                    class="color-btn"
+                    style="background: #228be6"
+                    data-color="#228be6"
+                  ></button>
+                  <button
+                    class="color-btn"
+                    style="background: #fab005"
+                    data-color="#fab005"
+                  ></button>
+                  <input type="color" id="text-color-picker" value="#ffffff" />
+                </div>
+              </div>
+
+              <!-- 배경 색상 -->
+              <div class="control-group">
+                <span class="control-label">배경(박스) 색상</span>
+                <div class="color-row" id="bg-color-palette">
+                  <button
+                    class="color-btn transparent"
+                    data-color="transparent"
+                    title="없음"
+                  ></button>
+                  <button
+                    class="color-btn"
+                    style="background: #ffffff"
+                    data-color="#ffffff"
+                  ></button>
+                  <button
+                    class="color-btn"
+                    style="background: #000000"
+                    data-color="#000000"
+                  ></button>
+                  <button
+                    class="color-btn"
+                    style="background: #fa5252"
+                    data-color="#fa5252"
+                  ></button>
+                  <input type="color" id="bg-color-picker" value="#000000" />
+                </div>
+              </div>
+            </div>
+            <button id="save-btn" class="main-action-btn">💌 인증</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- DOM Elements ---
+        const uploadBox = document.getElementById("upload-box");
+        const fileInput = document.getElementById("file-input");
+        const workspace = document.getElementById("workspace");
+        const imagePreviewContainer = document.getElementById(
+          "image-preview-container"
+        );
+        const positionGrid = document.getElementById("watermark-position");
+        const saveBtn = document.getElementById("save-btn");
+        const changeImageBtn = document.getElementById("change-image-btn");
+        const timestampDisplay = document.getElementById("timestamp-display");
+        const homeBtn = document.getElementById("home-btn");
+        const fontSelect = document.getElementById("font-select");
+
+        // Color inputs
+        const textColorPalette = document.getElementById("text-color-palette");
+        const textColorPicker = document.getElementById("text-color-picker");
+        const bgColorPalette = document.getElementById("bg-color-palette");
+        const bgColorPicker = document.getElementById("bg-color-picker");
+
+        let originalFile = null;
+        let previewCanvas = null;
+        let currentWatermarkLines = [];
+
+        // 기본 설정
+        let settings = {
+          position: "center",
+          size: 40,
+          textOpacity: 50,
+          bgOpacity: 50,
+          textColor: "#ffffff",
+          bgColor: "transparent",
+          font: "Pretendard", // 기본 폰트
+        };
+
+        // --- 초기화 및 설정 로드 ---
+        function loadSettings() {
+          const saved = localStorage.getItem("pelsy_settings_v4"); // 버전 업 v4
+          if (saved) {
+            try {
+              settings = { ...settings, ...JSON.parse(saved) };
+            } catch (e) {
+              console.error(e);
+            }
+          }
+
+          // UI 반영
+          document.getElementById("font-size-input").value = settings.size;
+          document.getElementById("text-opacity-input").value =
+            settings.textOpacity;
+          document.getElementById("bg-opacity-input").value =
+            settings.bgOpacity;
+          if (settings.font) fontSelect.value = settings.font;
+
+          updateActiveButton(positionGrid, settings.position);
+          updateColorUI(textColorPalette, textColorPicker, settings.textColor);
+          updateColorUI(bgColorPalette, bgColorPicker, settings.bgColor);
+        }
+
+        function saveSettings() {
+          localStorage.setItem("pelsy_settings_v4", JSON.stringify(settings));
+        }
+
+        // --- Helper Functions ---
+        const preventDefaults = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        };
+
+        function generateTimeStrings() {
+          const now = new Date();
+          const yy = String(now.getFullYear()).slice(-2);
+          const mm = String(now.getMonth() + 1).padStart(2, "0");
+          const dd = String(now.getDate()).padStart(2, "0");
+          const hh = String(now.getHours()).padStart(2, "0");
+          const min = String(now.getMinutes()).padStart(2, "0");
+          return { date: `${yy}-${mm}-${dd}`, time: `${hh}:${min}` };
+        }
+
+        function updateWatermarkLines() {
+          const { date, time } = generateTimeStrings();
+          currentWatermarkLines = ["AI 채팅 달글", date, time, "펠시 인증"];
+          timestampDisplay.textContent = `🕒 인증 시각 : ${date} ${time}`;
+        }
+
+        function handleFile(file) {
+          if (!file || !file.type.startsWith("image/")) {
+            alert("이미지 파일만 지원됩니다.");
+            return;
+          }
+          originalFile = file;
+          updateWatermarkLines();
+
+          const img = new Image();
+          img.onload = () => {
+            uploadBox.style.display = "none";
+            imagePreviewContainer.innerHTML = `<img id="image-preview" src="${img.src}">`;
+            workspace.style.display = "block";
+
+            const previewImg = document.getElementById("image-preview");
+            if (previewCanvas) previewCanvas.remove();
+
+            previewCanvas = document.createElement("canvas");
+            previewCanvas.id = "watermark-preview-canvas";
+            imagePreviewContainer.appendChild(previewCanvas);
+
+            const resizeObserver = new ResizeObserver((entries) => {
+              for (let entry of entries) {
+                const { width, height } = entry.contentRect;
+                previewCanvas.style.width = `${width}px`;
+                previewCanvas.style.height = `${height}px`;
+
+                const dpr = window.devicePixelRatio || 1;
+                previewCanvas.width = width * dpr;
+                previewCanvas.height = height * dpr;
+
+                const ctx = previewCanvas.getContext("2d");
+                ctx.scale(dpr, dpr);
+                updatePreview();
+              }
+            });
+            resizeObserver.observe(previewImg);
+          };
+          img.src = URL.createObjectURL(file);
+        }
+
+        function updatePreview() {
+          if (!previewCanvas) return;
+          const ctx = previewCanvas.getContext("2d");
+          const canvasWidth =
+            previewCanvas.width / (window.devicePixelRatio || 1);
+          const canvasHeight =
+            previewCanvas.height / (window.devicePixelRatio || 1);
+          ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+          drawStamp(ctx, canvasWidth, canvasHeight);
+        }
+
+        function drawStamp(ctx, width, height) {
+          if (currentWatermarkLines.length === 0) return;
+
+          const fontSize = (settings.size / 1000) * width;
+          const effectiveFontSize = Math.max(fontSize, 12);
+
+          // 폰트 설정 적용
+          ctx.font = `bold ${effectiveFontSize}px "${settings.font}", sans-serif`;
+          const lineHeight = effectiveFontSize * 1.3;
+
+          let maxLineWidth = 0;
+          currentWatermarkLines.forEach((line) => {
+            const m = ctx.measureText(line);
+            if (m.width > maxLineWidth) maxLineWidth = m.width;
+          });
+
+          const padding = effectiveFontSize * 0.8;
+          const blockWidth = maxLineWidth + padding * 2;
+          const blockHeight =
+            currentWatermarkLines.length * lineHeight + padding;
+
+          const margin = width * 0.05;
+          let x, y;
+
+          const pos = settings.position;
+          if (pos.includes("left")) x = margin + blockWidth / 2;
+          else if (pos.includes("right")) x = width - margin - blockWidth / 2;
+          else x = width / 2;
+
+          if (pos.includes("top")) y = margin + blockHeight / 2;
+          else if (pos.includes("bottom"))
+            y = height - margin - blockHeight / 2;
+          else y = height / 2;
+
+          // 1. 배경 그리기
+          ctx.save();
+          ctx.globalAlpha = settings.bgOpacity / 100;
+
+          if (settings.bgColor && settings.bgColor !== "transparent") {
+            ctx.fillStyle = settings.bgColor;
+            const boxX = x - blockWidth / 2;
+            const boxY = y - blockHeight / 2;
+            const r = 8;
+            ctx.beginPath();
+            ctx.moveTo(boxX + r, boxY);
+            ctx.arcTo(
+              boxX + blockWidth,
+              boxY,
+              boxX + blockWidth,
+              boxY + blockHeight,
+              r
+            );
+            ctx.arcTo(
+              boxX + blockWidth,
+              boxY + blockHeight,
+              boxX,
+              boxY + blockHeight,
+              r
+            );
+            ctx.arcTo(boxX, boxY + blockHeight, boxX, boxY, r);
+            ctx.arcTo(boxX, boxY, boxX + blockWidth, boxY, r);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.restore();
+
+          // 2. 텍스트 그리기
+          ctx.save();
+          ctx.globalAlpha = settings.textOpacity / 100;
+          ctx.fillStyle = settings.textColor;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+
+          if (settings.bgColor === "transparent") {
+            ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = 1;
+            ctx.shadowOffsetY = 1;
+          } else {
+            ctx.shadowColor = "transparent";
+          }
+
+          const startY =
+            y - ((currentWatermarkLines.length - 1) * lineHeight) / 2;
+
+          currentWatermarkLines.forEach((line, index) => {
+            ctx.fillText(line, x, startY + index * lineHeight);
+          });
+          ctx.restore();
+        }
+
+        function processImage() {
+          if (!originalFile) return;
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            ctx.drawImage(img, 0, 0);
+            drawStamp(ctx, canvas.width, canvas.height);
+
+            canvas.toBlob(
+              (blob) => {
+                const fileName = `pelsi_${originalFile.name.split(".").slice(0, -1).join(".")}.jpg`;
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = fileName;
+                a.click();
+                URL.revokeObjectURL(a.href);
+              },
+              "image/jpeg",
+              0.95
+            );
+          };
+          img.src = URL.createObjectURL(originalFile);
+        }
+
+        function updateActiveButton(container, value) {
+          container.querySelector(".active")?.classList.remove("active");
+          const btn =
+            container.querySelector(`[data-position="${value}"]`) ||
+            container.querySelector(`[data-color="${value}"]`);
+          if (btn) btn.classList.add("active");
+        }
+
+        function updateColorUI(palette, picker, color) {
+          updateActiveButton(palette, color);
+          if (color !== "transparent") picker.value = color;
+        }
+
+        // --- Event Listeners ---
+        ["dragenter", "dragover", "dragleave", "drop"].forEach((e) =>
+          uploadBox.addEventListener(e, preventDefaults, false)
+        );
+        uploadBox.addEventListener("drop", (e) =>
+          handleFile(e.dataTransfer.files[0])
+        );
+        fileInput.addEventListener("change", (e) =>
+          handleFile(e.target.files[0])
+        );
+        uploadBox.addEventListener("click", () => fileInput.click());
+        changeImageBtn.addEventListener("click", () => fileInput.click());
+
+        homeBtn.addEventListener("click", () => {
+          window.location.href = "https://toastout.github.io/toast/";
+        });
+
+        positionGrid.addEventListener("click", (e) => {
+          const btn = e.target.closest("button");
+          if (!btn) return;
+          settings.position = btn.dataset.position;
+          updateActiveButton(positionGrid, settings.position);
+          saveSettings();
+          updatePreview();
+        });
+
+        // 폰트 변경 이벤트
+        fontSelect.addEventListener("change", (e) => {
+          settings.font = e.target.value;
+          saveSettings();
+          updatePreview();
+        });
+
+        // 스테퍼 버튼 클릭
+        document.querySelectorAll(".stepper-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const targetId = btn.dataset.target;
+            const input = document.getElementById(targetId);
+            const step = parseInt(btn.dataset.step);
+            let val = parseInt(input.value) + step;
+            if (val < parseInt(input.min)) val = parseInt(input.min);
+            if (val > parseInt(input.max)) val = parseInt(input.max);
+            input.value = val;
+
+            // Trigger input event manually
+            input.dispatchEvent(new Event("input"));
+          });
+        });
+
+        // 스테퍼 숫자 직접 입력 (Input 이벤트)
+        ["font-size-input", "text-opacity-input", "bg-opacity-input"].forEach(
+          (id) => {
+            const input = document.getElementById(id);
+            input.addEventListener("input", (e) => {
+              let val = parseInt(e.target.value);
+              // 빈 값이면 일단 무시하거나 기본값 처리하지 않고 대기 (사용자 입력 중일 수 있음)
+              if (isNaN(val)) return;
+
+              // min/max 검사는 blur 시점에 하거나, 입력값 자체는 허용하되 렌더링 시 제한하는 방식 사용
+              // 여기서는 렌더링 값에 즉시 반영 (단, 범위 넘어가면 clamp)
+              let clampedVal = val;
+              if (clampedVal < parseInt(input.min))
+                clampedVal = parseInt(input.min);
+              if (clampedVal > parseInt(input.max))
+                clampedVal = parseInt(input.max);
+
+              if (id === "font-size-input") settings.size = clampedVal;
+              if (id === "text-opacity-input")
+                settings.textOpacity = clampedVal;
+              if (id === "bg-opacity-input") settings.bgOpacity = clampedVal;
+
+              saveSettings();
+              updatePreview();
+            });
+          }
+        );
+
+        textColorPalette.addEventListener("click", (e) => {
+          if (e.target.classList.contains("color-btn")) {
+            settings.textColor = e.target.dataset.color;
+            updateColorUI(
+              textColorPalette,
+              textColorPicker,
+              settings.textColor
+            );
+            saveSettings();
+            updatePreview();
+          }
+        });
+        textColorPicker.addEventListener("input", (e) => {
+          settings.textColor = e.target.value;
+          updateColorUI(textColorPalette, textColorPicker, settings.textColor);
+          saveSettings();
+          updatePreview();
+        });
+
+        bgColorPalette.addEventListener("click", (e) => {
+          if (e.target.classList.contains("color-btn")) {
+            settings.bgColor = e.target.dataset.color;
+            updateColorUI(bgColorPalette, bgColorPicker, settings.bgColor);
+            saveSettings();
+            updatePreview();
+          }
+        });
+        bgColorPicker.addEventListener("input", (e) => {
+          settings.bgColor = e.target.value;
+          updateColorUI(bgColorPalette, bgColorPicker, settings.bgColor);
+          saveSettings();
+          updatePreview();
+        });
+
+        saveBtn.addEventListener("click", processImage);
+
+        loadSettings();
+      });
+    </script>
+  </body>
+</html>
