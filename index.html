@@ -4,19 +4,23 @@
     <meta charset="UTF-8" />
     <title>📷 펠시 인증소</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- 폰트 로드 -->
+    <!-- 폰트 로드 (Pretendard 유지) -->
     <link
       rel="stylesheet"
       as="style"
       crossorigin
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css"
     />
+    <!-- 폰트 로드 (배달의민족 도현, 주아 유지) -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Jua&family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Jua&display=swap"
       rel="stylesheet"
     />
 
     <style>
+      /* 구글 Early Access 폰트 (본고딕만 유지) */
+      @import url("//fonts.googleapis.com/earlyaccess/notosanskr.css");
+
       :root {
         --bg-color: #f8f9fa;
         --text-color: #212529;
@@ -31,6 +35,7 @@
       body {
         font-family:
           "Pretendard",
+          "Noto Sans KR",
           -apple-system,
           BlinkMacSystemFont,
           "Segoe UI",
@@ -588,18 +593,6 @@
                     >
                       본고딕
                     </option>
-                    <option
-                      value="Nanum Gothic"
-                      style="font-family: &quot;Nanum Gothic&quot;"
-                    >
-                      나눔고딕
-                    </option>
-                    <option
-                      value="Nanum Myeongjo"
-                      style="font-family: &quot;Nanum Myeongjo&quot;"
-                    >
-                      나눔명조
-                    </option>
                     <option value="Jua" style="font-family: &quot;Jua&quot;">
                       주아
                     </option>
@@ -625,7 +618,7 @@
                     <input
                       type="number"
                       id="font-size-input"
-                      value="40"
+                      value="60"
                       min="10"
                       max="200"
                     />
@@ -796,7 +789,7 @@
         // 기본 설정
         let settings = {
           position: "center",
-          size: 40,
+          size: 60, // 기본값 60으로 변경
           textOpacity: 50,
           bgOpacity: 50,
           textColor: "#ffffff",
