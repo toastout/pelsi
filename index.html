@@ -146,10 +146,13 @@
         background: none;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
         margin: 0 auto;
+        transition: max-width 0.2s ease; /* 부드러운 리사이즈 효과 */
       }
       #image-preview {
-        max-width: 100%;
+        max-width: 100%; /* JS에서 동적으로 min(100%, px)로 제어됨 */
         max-height: 70vh;
+        width: auto; /* 비율 유지를 위해 auto */
+        height: auto; /* 비율 유지를 위해 auto */
         display: block;
       }
       #watermark-preview-canvas {
@@ -168,20 +171,33 @@
         padding: 20px;
         border-radius: 12px;
         border: 1px solid var(--border-color);
+        margin-top: 15px; /* 저장 버튼과의 간격 */
       }
 
       .control-group {
         display: flex;
         flex-direction: column;
         gap: 8px;
+        flex: 1; /* flex item 확장 */
+        min-width: 0; /* flex container overflow 방지 */
       }
+
+      /* 2열 배치 그룹 */
+      .control-row-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        align-items: start;
+      }
+
       .control-label {
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         color: var(--text-color);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        white-space: nowrap;
       }
 
       .position-grid {
@@ -189,7 +205,7 @@
         grid-template-columns: repeat(3, 1fr);
         gap: 6px;
         width: 100%;
-        aspect-ratio: 1.5;
+        aspect-ratio: 1.6;
       }
       .position-grid button {
         padding: 0;
@@ -222,6 +238,7 @@
         border: 1px solid var(--border-color);
         overflow: hidden;
         height: 40px;
+        width: 100%;
       }
       .stepper input {
         flex: 1;
@@ -235,8 +252,8 @@
         padding: 0;
         height: 100%;
         cursor: text;
+        min-width: 0;
       }
-      /* 숫자 입력 화살표 제거 */
       .stepper input::-webkit-outer-spin-button,
       .stepper input::-webkit-inner-spin-button {
         -webkit-appearance: none;
@@ -244,17 +261,18 @@
       }
 
       .stepper-btn {
-        width: 40px;
+        width: 32px;
         height: 100%;
         border: none;
         background: transparent;
         cursor: pointer;
         color: var(--text-color);
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: background 0.1s;
+        flex-shrink: 0;
       }
       .stepper-btn:hover {
         background: var(--btn-hover-bg);
@@ -264,6 +282,64 @@
       }
       .stepper-btn.plus {
         border-left: 1px solid var(--border-color);
+      }
+
+      /* 리사이즈 섹션 스타일 */
+      .resize-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .resize-input-group {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--section-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0 10px;
+        height: 40px;
+      }
+      .resize-input-group input {
+        border: none;
+        background: transparent;
+        text-align: right;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        flex: 1;
+        height: 100%;
+      }
+      .resize-input-group input:focus {
+        outline: none;
+      }
+      .resize-label {
+        font-size: 0.9rem;
+        color: #868e96;
+      }
+
+      .resize-btn-group {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
+      }
+      .resize-btn {
+        padding: 6px 0;
+        font-size: 0.8rem;
+        background: var(--section-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        color: var(--text-color);
+        transition: all 0.2s;
+      }
+      .resize-btn:hover {
+        background: var(--btn-hover-bg);
+      }
+      .resize-btn.active {
+        background: var(--text-color);
+        color: var(--bg-color);
+        border-color: var(--text-color);
       }
 
       .color-row {
@@ -321,14 +397,16 @@
       /* 폰트 선택 */
       .font-select {
         width: 100%;
-        padding: 10px;
+        padding: 0 10px;
+        height: 40px;
         border-radius: 8px;
         border: 1px solid var(--border-color);
         background: var(--section-bg);
         color: var(--text-color);
-        font-size: 1rem;
+        font-size: 0.95rem;
         cursor: pointer;
         outline: none;
+        box-sizing: border-box;
       }
 
       .main-action-btn {
@@ -341,7 +419,6 @@
         cursor: pointer;
         background-color: var(--accent-btn-bg);
         color: white;
-        margin-top: 20px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
         transition:
           transform 0.1s,
@@ -448,7 +525,32 @@
 
           <!-- 오른쪽: 컨트롤러 -->
           <div class="controls-section">
+            <button id="save-btn" class="main-action-btn">💌 인증</button>
+
             <div class="controls-panel">
+              <!-- 리사이즈 -->
+              <div class="control-group">
+                <span class="control-label">이미지 크기 조절 (원본 비율)</span>
+                <div class="resize-container">
+                  <div class="resize-input-group">
+                    <input
+                      type="number"
+                      id="resize-width-input"
+                      placeholder="너비"
+                    />
+                    <span class="resize-label">px</span>
+                  </div>
+                  <div class="resize-btn-group" id="resize-presets">
+                    <button class="resize-btn" data-percent="25">25%</button>
+                    <button class="resize-btn" data-percent="50">50%</button>
+                    <button class="resize-btn" data-percent="75">75%</button>
+                    <button class="resize-btn active" data-percent="100">
+                      100%
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <!-- 위치 조절 -->
               <div class="control-group">
                 <span class="control-label">위치</span>
@@ -469,128 +571,129 @@
                 </div>
               </div>
 
-              <!-- 폰트 선택 -->
-              <div class="control-group">
-                <span class="control-label">폰트</span>
-                <select id="font-select" class="font-select">
-                  <option
-                    value="Pretendard"
-                    style="font-family: &quot;Pretendard&quot;"
-                  >
-                    프리텐다드 (기본)
-                  </option>
-                  <option
-                    value="Noto Sans KR"
-                    style="font-family: &quot;Noto Sans KR&quot;"
-                  >
-                    본고딕
-                  </option>
-                  <option
-                    value="Nanum Gothic"
-                    style="font-family: &quot;Nanum Gothic&quot;"
-                  >
-                    나눔고딕
-                  </option>
-                  <option
-                    value="Nanum Myeongjo"
-                    style="font-family: &quot;Nanum Myeongjo&quot;"
-                  >
-                    나눔명조
-                  </option>
-                  <option value="Jua" style="font-family: &quot;Jua&quot;">
-                    주아 (동글)
-                  </option>
-                  <option
-                    value="Do Hyeon"
-                    style="font-family: &quot;Do Hyeon&quot;"
-                  >
-                    도현 (강조)
-                  </option>
-                </select>
-              </div>
+              <!-- 폰트 & 크기 (2열 배치) -->
+              <div class="control-row-group">
+                <div class="control-group">
+                  <span class="control-label">폰트</span>
+                  <select id="font-select" class="font-select">
+                    <option
+                      value="Pretendard"
+                      style="font-family: &quot;Pretendard&quot;"
+                    >
+                      프리텐다드
+                    </option>
+                    <option
+                      value="Noto Sans KR"
+                      style="font-family: &quot;Noto Sans KR&quot;"
+                    >
+                      본고딕
+                    </option>
+                    <option
+                      value="Nanum Gothic"
+                      style="font-family: &quot;Nanum Gothic&quot;"
+                    >
+                      나눔고딕
+                    </option>
+                    <option
+                      value="Nanum Myeongjo"
+                      style="font-family: &quot;Nanum Myeongjo&quot;"
+                    >
+                      나눔명조
+                    </option>
+                    <option value="Jua" style="font-family: &quot;Jua&quot;">
+                      주아
+                    </option>
+                    <option
+                      value="Do Hyeon"
+                      style="font-family: &quot;Do Hyeon&quot;"
+                    >
+                      도현
+                    </option>
+                  </select>
+                </div>
 
-              <!-- 크기 조절 -->
-              <div class="control-group">
-                <span class="control-label">크기</span>
-                <div class="stepper">
-                  <button
-                    class="stepper-btn minus"
-                    data-target="font-size-input"
-                    data-step="-5"
-                  >
-                    －
-                  </button>
-                  <!-- readonly 제거: 직접 입력 가능 -->
-                  <input
-                    type="number"
-                    id="font-size-input"
-                    value="40"
-                    min="10"
-                    max="200"
-                  />
-                  <button
-                    class="stepper-btn plus"
-                    data-target="font-size-input"
-                    data-step="5"
-                  >
-                    ＋
-                  </button>
+                <div class="control-group">
+                  <span class="control-label">크기</span>
+                  <div class="stepper">
+                    <button
+                      class="stepper-btn minus"
+                      data-target="font-size-input"
+                      data-step="-5"
+                    >
+                      －
+                    </button>
+                    <input
+                      type="number"
+                      id="font-size-input"
+                      value="40"
+                      min="10"
+                      max="200"
+                    />
+                    <button
+                      class="stepper-btn plus"
+                      data-target="font-size-input"
+                      data-step="5"
+                    >
+                      ＋
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <!-- 글자 투명도 조절 -->
-              <div class="control-group">
-                <span class="control-label">글자 투명도 (%)</span>
-                <div class="stepper">
-                  <button
-                    class="stepper-btn minus"
-                    data-target="text-opacity-input"
-                    data-step="-5"
-                  >
-                    －
-                  </button>
-                  <input
-                    type="number"
-                    id="text-opacity-input"
-                    value="50"
-                    min="10"
-                    max="100"
-                  />
-                  <button
-                    class="stepper-btn plus"
-                    data-target="text-opacity-input"
-                    data-step="5"
-                  >
-                    ＋
-                  </button>
+              <!-- 투명도 (2열 배치) -->
+              <div class="control-row-group">
+                <div class="control-group">
+                  <span class="control-label">글자 투명도</span>
+                  <div class="stepper">
+                    <button
+                      class="stepper-btn minus"
+                      data-target="text-opacity-input"
+                      data-step="-5"
+                    >
+                      －
+                    </button>
+                    <input
+                      type="number"
+                      id="text-opacity-input"
+                      value="50"
+                      min="10"
+                      max="100"
+                    />
+                    <button
+                      class="stepper-btn plus"
+                      data-target="text-opacity-input"
+                      data-step="5"
+                    >
+                      ＋
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <!-- 배경 투명도 조절 -->
-              <div class="control-group">
-                <span class="control-label">배경 투명도 (%)</span>
-                <div class="stepper">
-                  <button
-                    class="stepper-btn minus"
-                    data-target="bg-opacity-input"
-                    data-step="-5"
-                  >
-                    －
-                  </button>
-                  <input
-                    type="number"
-                    id="bg-opacity-input"
-                    value="50"
-                    min="0"
-                    max="100"
-                  />
-                  <button
-                    class="stepper-btn plus"
-                    data-target="bg-opacity-input"
-                    data-step="5"
-                  >
-                    ＋
-                  </button>
+                <div class="control-group">
+                  <span class="control-label">배경 투명도</span>
+                  <div class="stepper">
+                    <button
+                      class="stepper-btn minus"
+                      data-target="bg-opacity-input"
+                      data-step="-5"
+                    >
+                      －
+                    </button>
+                    <input
+                      type="number"
+                      id="bg-opacity-input"
+                      value="50"
+                      min="0"
+                      max="100"
+                    />
+                    <button
+                      class="stepper-btn plus"
+                      data-target="bg-opacity-input"
+                      data-step="5"
+                    >
+                      ＋
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -655,7 +758,6 @@
                 </div>
               </div>
             </div>
-            <button id="save-btn" class="main-action-btn">💌 인증</button>
           </div>
         </div>
       </div>
@@ -676,6 +778,8 @@
         const timestampDisplay = document.getElementById("timestamp-display");
         const homeBtn = document.getElementById("home-btn");
         const fontSelect = document.getElementById("font-select");
+        const resizeWidthInput = document.getElementById("resize-width-input");
+        const resizePresets = document.getElementById("resize-presets");
 
         // Color inputs
         const textColorPalette = document.getElementById("text-color-palette");
@@ -686,6 +790,8 @@
         let originalFile = null;
         let previewCanvas = null;
         let currentWatermarkLines = [];
+        let originalImageObject = null;
+        let originalImageWidth = 0;
 
         // 기본 설정
         let settings = {
@@ -695,12 +801,13 @@
           bgOpacity: 50,
           textColor: "#ffffff",
           bgColor: "transparent",
-          font: "Pretendard", // 기본 폰트
+          font: "Pretendard",
+          targetWidth: 0,
         };
 
         // --- 초기화 및 설정 로드 ---
         function loadSettings() {
-          const saved = localStorage.getItem("pelsy_settings_v4"); // 버전 업 v4
+          const saved = localStorage.getItem("pelsy_settings_v4");
           if (saved) {
             try {
               settings = { ...settings, ...JSON.parse(saved) };
@@ -709,7 +816,6 @@
             }
           }
 
-          // UI 반영
           document.getElementById("font-size-input").value = settings.size;
           document.getElementById("text-opacity-input").value =
             settings.textOpacity;
@@ -726,7 +832,6 @@
           localStorage.setItem("pelsy_settings_v4", JSON.stringify(settings));
         }
 
-        // --- Helper Functions ---
         const preventDefaults = (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -758,11 +863,25 @@
 
           const img = new Image();
           img.onload = () => {
+            originalImageObject = img;
+            originalImageWidth = img.naturalWidth;
+
+            // 초기 리사이즈 값 설정 (원본 크기)
+            settings.targetWidth = originalImageWidth;
+            resizeWidthInput.value = originalImageWidth;
+
+            // 100% 버튼 활성화
+            updateActiveResizeBtn(100);
+
             uploadBox.style.display = "none";
             imagePreviewContainer.innerHTML = `<img id="image-preview" src="${img.src}">`;
             workspace.style.display = "block";
 
             const previewImg = document.getElementById("image-preview");
+            // 스타일 초기화 (max-width는 min(100%, 픽셀)로 제어)
+            previewImg.style.width = "auto"; // 리셋
+            previewImg.style.maxWidth = `min(100%, ${originalImageWidth}px)`;
+
             if (previewCanvas) previewCanvas.remove();
 
             previewCanvas = document.createElement("canvas");
@@ -789,6 +908,29 @@
           img.src = URL.createObjectURL(file);
         }
 
+        // 리사이즈 적용 함수 (실시간 시각 피드백 - max-width 사용)
+        function applyResize(width) {
+          settings.targetWidth = width;
+          resizeWidthInput.value = width;
+
+          const previewImg = document.getElementById("image-preview");
+          if (previewImg) {
+            // width 강제 지정 대신 maxWidth 제한을 사용하여
+            // max-height(70vh)와 충돌 시 비율이 깨지지 않도록 함
+            // 동시에 화면 너비(100%)를 넘지 않도록 min() 사용
+            previewImg.style.maxWidth = `min(100%, ${width}px)`;
+          }
+        }
+
+        function updateActiveResizeBtn(percent) {
+          resizePresets.querySelectorAll(".resize-btn").forEach((btn) => {
+            btn.classList.toggle(
+              "active",
+              parseInt(btn.dataset.percent) === percent
+            );
+          });
+        }
+
         function updatePreview() {
           if (!previewCanvas) return;
           const ctx = previewCanvas.getContext("2d");
@@ -796,6 +938,7 @@
             previewCanvas.width / (window.devicePixelRatio || 1);
           const canvasHeight =
             previewCanvas.height / (window.devicePixelRatio || 1);
+
           ctx.clearRect(0, 0, canvasWidth, canvasHeight);
           drawStamp(ctx, canvasWidth, canvasHeight);
         }
@@ -806,7 +949,6 @@
           const fontSize = (settings.size / 1000) * width;
           const effectiveFontSize = Math.max(fontSize, 12);
 
-          // 폰트 설정 적용
           ctx.font = `bold ${effectiveFontSize}px "${settings.font}", sans-serif`;
           const lineHeight = effectiveFontSize * 1.3;
 
@@ -834,7 +976,6 @@
             y = height - margin - blockHeight / 2;
           else y = height / 2;
 
-          // 1. 배경 그리기
           ctx.save();
           ctx.globalAlpha = settings.bgOpacity / 100;
 
@@ -866,7 +1007,6 @@
           }
           ctx.restore();
 
-          // 2. 텍스트 그리기
           ctx.save();
           ctx.globalAlpha = settings.textOpacity / 100;
           ctx.fillStyle = settings.textColor;
@@ -892,30 +1032,36 @@
         }
 
         function processImage() {
-          if (!originalFile) return;
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            ctx.drawImage(img, 0, 0);
-            drawStamp(ctx, canvas.width, canvas.height);
+          if (!originalFile || !originalImageObject) return;
 
-            canvas.toBlob(
-              (blob) => {
-                const fileName = `pelsi_${originalFile.name.split(".").slice(0, -1).join(".")}.jpg`;
-                const a = document.createElement("a");
-                a.href = URL.createObjectURL(blob);
-                a.download = fileName;
-                a.click();
-                URL.revokeObjectURL(a.href);
-              },
-              "image/jpeg",
-              0.95
-            );
-          };
-          img.src = URL.createObjectURL(originalFile);
+          const img = originalImageObject;
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          let targetW = parseInt(settings.targetWidth) || img.naturalWidth;
+          if (targetW <= 0) targetW = img.naturalWidth;
+
+          const aspectRatio = img.naturalHeight / img.naturalWidth;
+          const targetH = targetW * aspectRatio;
+
+          canvas.width = targetW;
+          canvas.height = targetH;
+
+          ctx.drawImage(img, 0, 0, targetW, targetH);
+          drawStamp(ctx, targetW, targetH);
+
+          canvas.toBlob(
+            (blob) => {
+              const fileName = `pelsy_${originalFile.name.split(".").slice(0, -1).join(".")}.jpg`;
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = fileName;
+              a.click();
+              URL.revokeObjectURL(a.href);
+            },
+            "image/jpeg",
+            0.95
+          );
         }
 
         function updateActiveButton(container, value) {
@@ -948,6 +1094,29 @@
           window.location.href = "https://toastout.github.io/toast/";
         });
 
+        // 리사이즈 숫자 입력 (실시간 반영)
+        resizeWidthInput.addEventListener("input", (e) => {
+          const val = parseInt(e.target.value);
+          if (!isNaN(val) && val > 0) {
+            applyResize(val);
+            // 커스텀 입력 시 프리셋 버튼 활성화 해제
+            resizePresets.querySelector(".active")?.classList.remove("active");
+          }
+        });
+
+        // 리사이즈 프리셋 버튼
+        resizePresets.addEventListener("click", (e) => {
+          if (!originalImageObject) return;
+          const btn = e.target.closest("button");
+          if (!btn) return;
+
+          const percent = parseInt(btn.dataset.percent);
+          const newWidth = Math.round(originalImageWidth * (percent / 100));
+
+          applyResize(newWidth);
+          updateActiveResizeBtn(percent);
+        });
+
         positionGrid.addEventListener("click", (e) => {
           const btn = e.target.closest("button");
           if (!btn) return;
@@ -957,14 +1126,12 @@
           updatePreview();
         });
 
-        // 폰트 변경 이벤트
         fontSelect.addEventListener("change", (e) => {
           settings.font = e.target.value;
           saveSettings();
           updatePreview();
         });
 
-        // 스테퍼 버튼 클릭
         document.querySelectorAll(".stepper-btn").forEach((btn) => {
           btn.addEventListener("click", () => {
             const targetId = btn.dataset.target;
@@ -974,23 +1141,17 @@
             if (val < parseInt(input.min)) val = parseInt(input.min);
             if (val > parseInt(input.max)) val = parseInt(input.max);
             input.value = val;
-
-            // Trigger input event manually
             input.dispatchEvent(new Event("input"));
           });
         });
 
-        // 스테퍼 숫자 직접 입력 (Input 이벤트)
         ["font-size-input", "text-opacity-input", "bg-opacity-input"].forEach(
           (id) => {
             const input = document.getElementById(id);
             input.addEventListener("input", (e) => {
               let val = parseInt(e.target.value);
-              // 빈 값이면 일단 무시하거나 기본값 처리하지 않고 대기 (사용자 입력 중일 수 있음)
               if (isNaN(val)) return;
 
-              // min/max 검사는 blur 시점에 하거나, 입력값 자체는 허용하되 렌더링 시 제한하는 방식 사용
-              // 여기서는 렌더링 값에 즉시 반영 (단, 범위 넘어가면 clamp)
               let clampedVal = val;
               if (clampedVal < parseInt(input.min))
                 clampedVal = parseInt(input.min);
