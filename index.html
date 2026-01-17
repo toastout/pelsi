@@ -807,7 +807,7 @@
 
         // --- 초기화 및 설정 로드 ---
         function loadSettings() {
-          const saved = localStorage.getItem("pelsy_settings_v4");
+          const saved = localStorage.getItem("pelsi_settings_v4");
           if (saved) {
             try {
               settings = { ...settings, ...JSON.parse(saved) };
@@ -829,7 +829,7 @@
         }
 
         function saveSettings() {
-          localStorage.setItem("pelsy_settings_v4", JSON.stringify(settings));
+          localStorage.setItem("pelsi_settings_v4", JSON.stringify(settings));
         }
 
         const preventDefaults = (e) => {
@@ -1052,7 +1052,7 @@
 
           canvas.toBlob(
             (blob) => {
-              const fileName = `pelsy_${originalFile.name.split(".").slice(0, -1).join(".")}.jpg`;
+              const fileName = `pelsi_${originalFile.name.split(".").slice(0, -1).join(".")}.jpg`;
               const a = document.createElement("a");
               a.href = URL.createObjectURL(blob);
               a.download = fileName;
